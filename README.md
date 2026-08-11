@@ -13,10 +13,10 @@
 
 ## Compatibility
 
-| iOS Version                | Status      |
-| -------------------------- | ----------- |
-| iOS 18.0 – iOS 27.0 Beta 4 | ✅ Supported |
-| Later versions             | ❌ Patched   |
+| iOS Version                       | Status      |
+| --------------------------------- | ----------- |
+| iOS 27.0 Beta 1 – iOS 27.0 Beta 4 | ✅ Supported |
+| Later versions                    | ❌ Patched   |
 
 ## Credits
 
