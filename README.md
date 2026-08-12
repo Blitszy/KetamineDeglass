@@ -4,6 +4,9 @@
 
 **Ketamine** is a MobileGestalt editor that runs entirely on your iPhone, allowing you to modify MobileGestalt values without using a computer.
 
+## Support
+Discord: https://discord.gg/JT3B7fHnrc
+
 ## Features
 
 * 📱 Runs directly on iPhone
