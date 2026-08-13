@@ -20,6 +20,10 @@ struct MainTabView: View {
         TabView {
             HomeView()
                 .tabItem { Label("Tweaks", systemImage: "slider.horizontal.3") }
+            PosterBoardView()
+                .tabItem { Label("PosterBoard", systemImage: "photo.on.rectangle.angled") }
+            EligibilityView()
+                .tabItem { Label("Eligibility", systemImage: "checklist") }
             SettingsView()
                 .tabItem { Label("Settings", systemImage: "gearshape.fill") }
         }

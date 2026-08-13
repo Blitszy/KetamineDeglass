@@ -172,11 +172,16 @@ final class GestaltStore: ObservableObject {
                             warnings.append("\(tweak.title): invalid picker selection, skipped.")
                             continue
                         }
-                        // Replace the picker int with the selected value.
+                        guard tweak.selectedIndex < tweak.pickerValues.count else {
+                            warnings.append("\(tweak.title): picker values mismatch, skipped.")
+                            continue
+                        }
+                        // Replace the picker value with the selected option.
+                        let selectedValue = tweak.pickerValues[tweak.selectedIndex]
                         mods = tweak.modifications.map { m in
                             if m.isPicker {
                                 return GestaltModification(key: m.key, subkey: m.subkey,
-                                                           value: .int(tweak.pickerValues[tweak.selectedIndex]))
+                                                           value: selectedValue)
                             }
                             return m
                         }
@@ -197,12 +202,26 @@ final class GestaltStore: ObservableObject {
                     applied += 1
                 }
                 for mod in mods {
-                    if let subkey = mod.subkey {
-                        var dict = (cacheExtra[mod.key] as? [String: Any]) ?? [:]
-                        dict[subkey] = mod.value.plistObject
-                        cacheExtra[mod.key] = dict
-                    } else {
-                        cacheExtra[mod.key] = mod.value.plistObject
+                    switch mod.value {
+                    case .remove:
+                        if let subkey = mod.subkey {
+                            if var dict = cacheExtra[mod.key] as? [String: Any] {
+                                dict.removeValue(forKey: subkey)
+                                cacheExtra[mod.key] = dict
+                            }
+                        } else {
+                            cacheExtra.removeValue(forKey: mod.key)
+                        }
+                    case .keepCurrent:
+                        break
+                    default:
+                        if let subkey = mod.subkey {
+                            var dict = (cacheExtra[mod.key] as? [String: Any]) ?? [:]
+                            dict[subkey] = mod.value.plistObject
+                            cacheExtra[mod.key] = dict
+                        } else {
+                            cacheExtra[mod.key] = mod.value.plistObject
+                        }
                     }
                 }
             }
@@ -218,6 +237,41 @@ final class GestaltStore: ObservableObject {
             }
             plist["CacheData"] = try CacheDataPatch.apply(to: cacheData)
             binaryPatch = true
+        }
+
+        // CacheData-backed tweaks (mond-style offset writes). Disabled tweaks
+        // reset their offset back to the disabled value so toggling off undoes.
+        var cacheDataPatches: [(key: String, value: Int)] = []
+        for tweak in tweaks {
+            for mod in tweak.modifications where mod.cacheDataKey != nil {
+                let patchValue: Int
+                if tweak.isEnabled {
+                    guard case .int(let v) = mod.value else { continue }
+                    patchValue = v
+                } else {
+                    patchValue = mod.cacheDataDisabledValue ?? 0
+                }
+                cacheDataPatches.removeAll { $0.key == mod.cacheDataKey }
+                cacheDataPatches.append((mod.cacheDataKey!, patchValue))
+            }
+        }
+        if !cacheDataPatches.isEmpty {
+            guard var cacheData = plist["CacheData"] as? Data else {
+                throw ApplyError.missingCacheData
+            }
+            var appliedCacheData = false
+            for patch in cacheDataPatches {
+                do {
+                    try CacheDataPatch.set(patch.value, forKey: patch.key, in: &cacheData)
+                    appliedCacheData = true
+                } catch {
+                    warnings.append("CacheData offset unavailable for key \(patch.key) on this iOS — skipped.")
+                }
+            }
+            if appliedCacheData {
+                plist["CacheData"] = cacheData
+                binaryPatch = true
+            }
         }
 
         let newData = try PropertyListSerialization.data(

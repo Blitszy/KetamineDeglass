@@ -39,5 +39,25 @@
 	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.leminlimez.tendies</string>
+			<key>UTTypeDescription</key>
+			<string>Tendies Wallpaper Pack</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>tendies</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>

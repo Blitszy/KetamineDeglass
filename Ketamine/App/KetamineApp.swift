@@ -8,7 +8,6 @@ struct KetamineApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(store)
-                .preferredColorScheme(.light)
                 .tint(Theme.accent)
         }
     }

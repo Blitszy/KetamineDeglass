@@ -1,15 +1,11 @@
 import SwiftUI
-import LiquidGlass
 
 struct HomeView: View {
     @EnvironmentObject private var store: GestaltStore
 
-    @State private var showSavedAlert = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var activeSheet: ActiveSheet?
-
-    private let respringURL = URL(string: "https://jailbreak.party/respring.html")!
 
     private var grouped: [(TweakCategory, [Tweak])] {
         TweakCategory.allCases.compactMap { category in
@@ -24,15 +20,17 @@ struct HomeView: View {
                 GlassBackground()
 
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 18) {
                         header
-                        backupRow
+                        betaNotice
                         ForEach(grouped, id: \.0) { category, tweaks in
                             section(category, tweaks: tweaks)
                         }
                         footnotes
                     }
                     .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 12)
                 }
                 .scrollDismissesKeyboard(.interactively)
             }
@@ -42,14 +40,7 @@ struct HomeView: View {
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
             case .restore: RestoreSheet()
-            case .safari: SafariView(url: respringURL)
             }
-        }
-        .alert("Changes saved", isPresented: $showSavedAlert) {
-            Button("Respring") { activeSheet = .safari }
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("All enabled tweaks were written to the MobileGestalt cache. Respring or reboot to apply them.")
         }
         .alert("Could not save changes", isPresented: $showErrorAlert) {
             Button("OK", role: .cancel) {}
@@ -61,65 +52,56 @@ struct HomeView: View {
     // MARK: Header
 
     private var header: some View {
-        HStack(spacing: 14) {
+        VStack(spacing: 6) {
             Image("Logo")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 54, height: 54)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Ketamine")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                Text("MobileGestalt Editor")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-            if store.enabledCount > 0 {
-                Text("\(store.enabledCount) on")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Theme.accent)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .glass(style: .toolbar, tint: Theme.accent.opacity(0.18))
-            }
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 15, style: .continuous))
+            Text("Ketamine")
+                .font(.title.weight(.bold))
+            Text("MobileGestalt Editor")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .glass(style: .card, tint: Theme.accent.opacity(0.10), cornerRadius: 24)
+        .frame(maxWidth: .infinity)
+        .padding(.top, 8)
     }
 
-    // MARK: Backup row
+    // MARK: Beta notice
 
-    private var backupRow: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "shield.slash")
-                .font(.title2)
-                .foregroundStyle(Theme.accent)
+    private var betaNotice: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.subheadline)
+                .foregroundStyle(Theme.danger)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Early Beta!")
-                    .font(.headline)
-                Text("This is very early (mostly AI made UI) and contain bugs and glitches! I'll fix everything (and change this ugly UI) in future updates!")
+                Text("Early Beta")
+                    .font(.subheadline.weight(.semibold))
+                Text("This is a very early build with bugs and glitches. Everything will be fixed in future updates.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer()
         }
-        .padding(14)
-        .glass(style: .card, tint: Theme.accent.opacity(0.08))
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Theme.surface)
+        )
     }
 
     // MARK: Section
 
     private func section(_ category: TweakCategory, tweaks: [Tweak]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(category.rawValue.uppercased())
-                .font(.caption.weight(.bold))
-                .foregroundStyle(.secondary)
-                .padding(.leading, 6)
-            VStack(spacing: 10) {
-                ForEach(tweaks) { tweak in
+            SectionTitle(title: category.rawValue)
+            RowGroup {
+                ForEach(Array(tweaks.enumerated()), id: \.element.id) { index, tweak in
                     TweakRow(tweak: tweak)
+                    if index < tweaks.count - 1 {
+                        RowDivider()
+                    }
                 }
             }
         }
@@ -143,46 +125,31 @@ struct HomeView: View {
     // MARK: Dock
 
     private var dock: some View {
-        VStack(spacing: 10) {
-            Button {
-                saveChanges()
-            } label: {
-                HStack(spacing: 8) {
-                    if store.isBusy {
-                        ProgressView()
-                            .tint(Theme.accent)
-                    }
-                    Image(systemName: "checkmark.circle.fill")
-                    Text(store.enabledCount > 0 ? "Save \(store.enabledCount) Changes" : "Save Changes")
-                        .fontWeight(.semibold)
-                }
-                .foregroundStyle(Theme.accent)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 14)
-                .glass(style: .button, tint: Theme.accent.opacity(0.18), cornerRadius: 14)
-            }
-            .disabled(store.enabledCount == 0 || store.isBusy)
-            .opacity(store.enabledCount == 0 || store.isBusy ? 0.5 : 1)
+        HStack(spacing: 12) {
+            ActionButton(
+                title: store.enabledCount > 0 ? "Save \(store.enabledCount)" : "Save Changes",
+                systemImage: "checkmark",
+                isBusy: store.isBusy,
+                disabled: store.enabledCount == 0,
+                action: saveChanges
+            )
 
             Button {
                 guard store.backup.hasBackup else { return }
                 activeSheet = .restore
             } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "arrow.uturn.backward")
-                    Text("Restore")
-                        .fontWeight(.semibold)
-                }
-                .foregroundStyle(Theme.danger)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .glass(style: .button, tint: Theme.danger.opacity(0.10), cornerRadius: 14)
+                Image(systemName: "arrow.uturn.backward")
+                    .font(.headline)
+                    .foregroundStyle(Theme.danger)
+                    .frame(width: 48, height: 48)
+                    .background(Circle().fill(Theme.danger.opacity(0.10)))
             }
             .disabled(!store.backup.hasBackup)
-            .opacity(store.backup.hasBackup ? 1 : 0.4)
+            .opacity(store.backup.hasBackup ? 1 : 0.35)
         }
-        .padding(14)
-        .glass(style: .sheet, tint: Theme.accent.opacity(0.06))
+        .padding(8)
+        .appGlass(shape: .sheet)
+        .padding(.horizontal, 16)
     }
 
     // MARK: Actions
@@ -191,7 +158,8 @@ struct HomeView: View {
         Task {
             do {
                 _ = try await store.apply()
-                showSavedAlert = true
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+                RespringHelper.respring()
             } catch {
                 errorMessage = error.localizedDescription
                 showErrorAlert = true
@@ -204,7 +172,6 @@ struct HomeView: View {
 
 enum ActiveSheet: Identifiable {
     case restore
-    case safari
 
     var id: Int { hashValue }
 }
@@ -216,14 +183,13 @@ struct TweakRow: View {
     let tweak: Tweak
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
             HStack(spacing: 12) {
-                CategoryBadge(category: tweak.category, symbol: tweak.symbol)
+                CategoryBadge(symbol: tweak.symbol)
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 6) {
                         Text(tweak.title)
-                            .font(.headline)
-                            .foregroundStyle(.primary)
+                            .font(.subheadline.weight(.medium))
                         if tweak.isRisky {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(.caption2)
@@ -235,25 +201,26 @@ struct TweakRow: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
-                Spacer()
+                Spacer(minLength: 8)
                 Toggle("", isOn: store.binding(for: tweak.id))
                     .labelsHidden()
                     .tint(Theme.accent)
             }
+            .padding(12)
 
             if tweak.isEnabled {
+                RowDivider()
                 VStack(spacing: 10) {
                     if let note = tweak.notes {
-                        Label(note, systemImage: "exclamationmark.triangle.fill")
-                            .font(.caption2)
-                            .foregroundStyle(Theme.danger)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .fill(Theme.danger.opacity(0.08))
-                            )
+                        HStack(alignment: .top, spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.caption2)
+                                .foregroundStyle(Theme.danger)
+                            Text(note)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
                     if let detail = tweak.detail {
                         switch detail {
@@ -269,19 +236,19 @@ struct TweakRow: View {
                             TextField(placeholder, text: store.textBinding(for: tweak.id))
                                 .keyboardType(keyboard == .numeric ? .numberPad : .default)
                                 .padding(.horizontal, 12)
-                                .padding(.vertical, 10)
+                                .padding(.vertical, 9)
                                 .background(
                                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .fill(Theme.accent.opacity(0.06))
+                                        .fill(Color(.secondarySystemBackground))
                                 )
                         }
                     }
                 }
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 12)
+                .transition(.opacity)
             }
         }
-        .padding(12)
-        .glass(style: .card, tint: Theme.accent.opacity(0.05))
         .animation(.spring(duration: 0.3), value: tweak.isEnabled)
     }
 }

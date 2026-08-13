@@ -1,12 +1,12 @@
 import SwiftUI
-import LiquidGlass
 
 struct RestoreSheet: View {
     @EnvironmentObject private var store: GestaltStore
     @Environment(\.dismiss) private var dismiss
 
-    @State private var isRestoring = false
     @State private var done = false
+    @State private var showConfirm = false
+    @State private var isRestoring = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -16,8 +16,8 @@ struct RestoreSheet: View {
 
                 ScrollView {
                     VStack(spacing: 16) {
-                        if store.backupInfo.map({ $0.sha256 }) != nil {
-                            VStack(alignment: .leading, spacing: 10) {
+                        if store.backup.hasBackup {
+                            Card {
                                 HStack(spacing: 10) {
                                     Image(systemName: "arrow.uturn.backward.circle.fill")
                                         .font(.title2)
@@ -28,14 +28,12 @@ struct RestoreSheet: View {
                                 Text("The exact untouched file captured on your first apply will be written back, reversing every tweak — including the iPadOS binary patch.")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-                                if let info = store.backupInfo {
+                                if let info = store.backup.info {
                                     Label("Backup from \(info.createdAt.formatted(date: .abbreviated, time: .shortened)) · \(ByteCountFormatter.string(fromByteCount: Int64(info.byteCount), countStyle: .file))", systemImage: "clock.fill")
                                         .font(.caption)
                                         .foregroundStyle(.tertiary)
                                 }
                             }
-                            .padding(14)
-                            .glass(style: .card, tint: Theme.accent.opacity(0.08))
 
                             if done {
                                 Label("Restored. Reboot to complete.", systemImage: "checkmark.circle.fill")
@@ -47,12 +45,18 @@ struct RestoreSheet: View {
                                     .font(.caption)
                                     .foregroundStyle(Theme.danger)
                                     .padding(14)
-                                    .glass(style: .card, tint: Theme.danger.opacity(0.08))
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .fill(Theme.surface)
+                                    )
                             } else {
-                                HoldToConfirmButton("Hold to Restore", systemImage: "arrow.uturn.backward",
-                                                    holdDuration: 1.6, tint: AnyShapeStyle(Theme.danger)) {
-                                    runRestore()
-                                }
+                                ActionButton(
+                                    title: "Restore",
+                                    systemImage: "arrow.uturn.backward",
+                                    destructive: true,
+                                    isBusy: isRestoring,
+                                    action: { showConfirm = true }
+                                )
                             }
                         }
                     }
@@ -67,19 +71,32 @@ struct RestoreSheet: View {
                 }
             }
         }
+        .confirmationDialog(
+            "Restore original MobileGestalt",
+            isPresented: $showConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Restore", role: .destructive) {
+                runRestore()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("The pristine backup file will be written back, reversing every tweak. Keep the device charged and do not close the app.")
+        }
     }
 
     private func runRestore() {
-        isRestoring = true
         errorMessage = nil
+        isRestoring = true
         Task {
             do {
                 _ = try await store.restore()
+                isRestoring = false
                 done = true
             } catch {
+                isRestoring = false
                 errorMessage = error.localizedDescription
             }
-            isRestoring = false
         }
     }
 }

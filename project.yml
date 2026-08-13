@@ -7,15 +7,15 @@ options:
   groupSortPosition: top
 
 packages:
-  LiquidGlass:
-    url: https://github.com/rguillen-dev/LiquidGlass.git
-    from: 1.3.0
+  ZIPFoundation:
+    url: https://github.com/weichsel/ZIPFoundation.git
+    from: 0.9.19
 
 settings:
   base:
     SWIFT_VERSION: "5.9"
-    MARKETING_VERSION: "1.0.0"
-    CURRENT_PROJECT_VERSION: "1"
+    MARKETING_VERSION: "1.1.0"
+    CURRENT_PROJECT_VERSION: "2"
     CODE_SIGN_STYLE: Automatic
     TARGETED_DEVICE_FAMILY: "1"
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
@@ -32,7 +32,7 @@ targets:
         excludes:
           - "Exploit/Ketamine-Bridging-Header.h"
     dependencies:
-      - package: LiquidGlass
+      - package: ZIPFoundation
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: uk.nouvborne.ketamine

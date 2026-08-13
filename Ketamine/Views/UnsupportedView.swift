@@ -1,5 +1,4 @@
 import SwiftUI
-import LiquidGlass
 
 struct UnsupportedView: View {
     let reason: String
@@ -40,7 +39,11 @@ struct UnsupportedView: View {
                             .foregroundStyle(.secondary)
                     }
                     .padding(20)
-                    .glass(style: .card, tint: Theme.danger.opacity(0.06))
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(Color(.secondarySystemGroupedBackground))
+                    )
 
                     VStack(spacing: 6) {
                         InfoRow(label: "iOS version", value: "\(os.version.majorVersion).\(os.version.minorVersion).\(os.version.patchVersion)")
@@ -48,7 +51,10 @@ struct UnsupportedView: View {
                         InfoRow(label: "Verified up to", value: "27.0 beta 4 · 24A5390f")
                     }
                     .padding(16)
-                    .glass(style: .card, tint: Theme.accent.opacity(0.05))
+                    .background(
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .fill(Color(.secondarySystemGroupedBackground))
+                    )
 
                     Text("Newer builds have patched the MobileGestalt container access. You can still build and inspect the app, but it will not modify anything.")
                         .font(.caption)

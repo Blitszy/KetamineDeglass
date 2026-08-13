@@ -4,6 +4,7 @@ import Foundation
 
 enum TweakCategory: String, CaseIterable, Identifiable {
     case display = "Display"
+    case device = "Device"
     case system = "System"
     case liquidGlass = "Liquid Glass"
     case ipad = "iPad"
@@ -19,12 +20,17 @@ enum MGValue: Equatable {
     case int(Int)
     case string(String)
     case intArray([Int])
+    /// Delete the key (or subkey) from CacheExtra.
+    case remove
+    /// Leave whatever value is already in the plist untouched.
+    case keepCurrent
 
     var plistObject: Any {
         switch self {
         case .int(let v): return v
         case .string(let v): return v
         case .intArray(let v): return v
+        case .remove, .keepCurrent: return NSNull()
         }
     }
 }
@@ -39,6 +45,11 @@ struct GestaltModification: Equatable {
     /// Marks the modification driven by a `.picker` detail so only that
     /// value is swapped for the selected option.
     var isPicker: Bool = false
+    /// When set, `value` is written into the `CacheData` blob at the offset
+    /// resolved for this key (mond-style) instead of CacheExtra.
+    var cacheDataKey: String? = nil
+    /// Value written into CacheData when the owning tweak is disabled.
+    var cacheDataDisabledValue: Int? = nil
 }
 
 // MARK: - Detail (inline editors)
@@ -69,8 +80,9 @@ struct Tweak: Identifiable, Equatable {
     var detail: TweakDetail?
     var selectedIndex: Int = 0
     var textValue: String = ""
-    /// For `.picker` details: the int values that map 1:1 to `options`.
-    var pickerValues: [Int] = []
+    /// For `.picker` details: the values that map 1:1 to `options`.
+    /// Use `.remove` / `.keepCurrent` for "Default"/"Original" options.
+    var pickerValues: [MGValue] = []
 
     /// Special flag for iPadOS: requires the CacheData binary patch.
     var requiresCacheDataPatch: Bool = false
