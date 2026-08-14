@@ -20,7 +20,7 @@
 
 | iOS Version | MobileGestalt Editing | PosterBoard |
 | ----------- | --------------------- | ----------- |
-| iOS 26.0 – 26.6 | ❌ Not supported | ⚠️ Untested |
+| iOS 26.0 – 26.6 | ❌ Not supported | ✅ Supported |
 | iOS 27.0 Beta 1 – Beta 4 | ✅ Supported | ✅ Supported |
 | Later versions | ❌ Patched | ❌ Unsupported |
 
