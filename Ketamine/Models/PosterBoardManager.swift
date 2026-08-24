@@ -51,6 +51,19 @@ final class PosterBoardManager: ObservableObject {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
     }
 
+    /// Persists tendies data fetched from a remote source into our tendies
+    /// store, mirroring `importTendies(from:)` for locally picked files.
+    func storeDownloadedTendies(named name: String, data: Data) throws -> URL {
+        let fm = FileManager.default
+        let safeName = name.isEmpty ? "\(UUID().uuidString).tendies" : name
+        let newURL = getTendiesStoreURL().appendingPathComponent(safeName)
+        if fm.fileExists(atPath: newURL.path) {
+            try fm.removeItem(at: newURL)
+        }
+        try data.write(to: newURL, options: [.atomic])
+        return newURL
+    }
+
     // MARK: - Extension version
 
     func getExtensionVersion() -> String {
@@ -178,12 +191,10 @@ final class PosterBoardManager: ObservableObject {
 
     /// Deep-recurses a tendie directory looking for descriptor folders,
     /// returning them keyed by the PosterBoard extension they belong to.
-    /// Ported from mond's `poster.swift` findDescriptors: a descriptor folder
     /// is any directory containing a `com.apple.posterkit.provider.descriptor.identifier`
     /// file. Descriptor folders whose parent folder name contains "video" are
     /// mapped to the Photos provider; everything else to PosterBoard
     /// collections. Traverses twice — once per target — so every descriptor is
-    /// classified the same way mond does.
     func findDescriptors(in url: URL) throws -> [String: [URL]] {
         var result: [String: [URL]] = [:]
 

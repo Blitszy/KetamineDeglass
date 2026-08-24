@@ -4,7 +4,6 @@ import MachO
 
 /// CacheData blob patching.
 ///
-/// Primary path ports mond's `cache_data_offset` (mg.swift): scan
 /// libMobileGestalt's `__AUTH_CONST`/`__DATA_CONST` for the uint64 that points
 /// at a key's cstring, then derive the offset of that key's Int value inside
 /// the `CacheData` blob. This replaces Nugget's hardcoded slice-1616 hack with
@@ -39,8 +38,6 @@ enum CacheDataPatch {
     }
 
     private static var cachedOffsets: [String: Int] = [:]
-
-    // MARK: - Offset resolution (mond `cache_data_offset`)
 
     static func offset(for key: String) -> Int {
         if let cached = cachedOffsets[key] {
@@ -125,9 +122,6 @@ enum CacheDataPatch {
     }
 
     // MARK: - iPadOS patch
-
-    /// iPadOS enable bit — mond writes Int(3) at the resolved offset for
-    /// `mtrAoWJ3gsq+I90ZnQ0vQw`. Falls back to Nugget's slice-1616 hex patch.
     static func apply(to data: Data) throws -> Data {
         let off = offset(for: "mtrAoWJ3gsq+I90ZnQ0vQw")
         if off > 0, off + MemoryLayout<Int>.size <= data.count {

@@ -3,182 +3,143 @@ import UIKit
 
 struct EligibilityView: View {
     @ObservedObject private var manager = EligibilityManager.shared
-
     @State private var isBusy = false
     @State private var showErrorAlert = false
     @State private var errorMessage = ""
     @State private var reachable = false
 
-    private var isSupported: Bool {
-        reachable
-    }
-
     var body: some View {
-        NavigationStack {
-            ZStack {
-                GlassBackground()
-
-                ScrollView {
-                    VStack(spacing: 18) {
-                        header
-                        if !isSupported {
-                            unavailableNotice
-                        }
-                        optionsSection
-                        actionSection
-                        footnotes
+        ZStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 28) {
+                    header
+                    if reachable {
+                        controls
+                        explanation
+                    } else {
+                        unavailable
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                    .padding(.bottom, 12)
                 }
-                .scrollDismissesKeyboard(.interactively)
-
-                if isBusy {
-                    ProgressOverlay(message: "Applying eligibility…")
-                }
+                .padding(Theme.pagePadding)
+                .padding(.bottom, reachable ? 94 : 24)
             }
-            .navigationTitle("Eligibility")
-            .navigationBarTitleDisplayMode(.inline)
-            .task {
-                reachable = EligibilityManager.isReachable()
-            }
+            .scrollIndicators(.hidden)
+            .background(Color(uiColor: .systemGroupedBackground))
+            if isBusy { ProgressOverlay(message: "Updating eligibility") }
         }
-        .alert("Something went wrong", isPresented: $showErrorAlert) {
+        .navigationTitle("Eligibility")
+        .navigationBarTitleDisplayMode(.inline)
+        .task { reachable = EligibilityManager.isReachable() }
+        .safeAreaInset(edge: .bottom) {
+            if reachable { applyBar }
+        }
+        .alert("Eligibility update failed", isPresented: $showErrorAlert) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(errorMessage)
         }
     }
 
-    // MARK: Header
-
     private var header: some View {
-        VStack(spacing: 6) {
-            Image(systemName: "checklist")
-                .font(.system(size: 26, weight: .medium))
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Domain controls")
+                .font(.largeTitle.weight(.semibold))
+            Text("Set the eligibility answers that this device reports to the operating system.")
+                .font(.subheadline)
                 .foregroundStyle(.secondary)
-                .frame(width: 56, height: 56)
-                .background(RoundedRectangle(cornerRadius: 15, style: .continuous).fill(Color(.tertiarySystemFill)))
-            Text("Eligibility")
-                .font(.title.weight(.bold))
-            Text("Force-approve Apple Intelligence eligibility on iOS 27")
+            Text(reachable ? "DIRECT ACCESS AVAILABLE" : "DIRECT ACCESS UNAVAILABLE")
+                .font(.caption2.weight(.bold))
+                .tracking(0.8)
+                .foregroundStyle(reachable ? Theme.affirmative : .secondary)
+                .padding(.top, 4)
+        }
+    }
+
+    private var controls: some View {
+        VStack(spacing: 0) {
+            domain(
+                title: "Apple Intelligence",
+                detail: "Enables the GREYMATTER domain for generative model eligibility.",
+                symbol: "sparkles",
+                isOn: $manager.enableGreyMatter
+            )
+            Divider().padding(.leading, 44)
+            domain(
+                title: "China Cellular",
+                detail: "Removes the CALCIUM China-cellular eligibility restriction.",
+                symbol: "antenna.radiowaves.left.and.right",
+                isOn: $manager.enableCalcium
+            )
+        }
+        .padding(.horizontal, 18)
+        .liquidGlass()
+    }
+
+    private var explanation: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("How it works").font(.subheadline.weight(.semibold))
+            Text("Ketamine merges these answers into the existing eligibility plist. It keeps unrelated state intact and saves the original file before the first change.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var unavailable: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: "lock")
+                .font(.title2)
+                .foregroundStyle(.secondary)
+            Text("This firmware does not grant write access to the eligibility container.")
+                .font(.headline)
+            Text("Use the Apple Intelligence and Device Spoof capabilities from Console instead.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.top, 8)
+        .padding(.top, 24)
     }
 
-    // MARK: Unavailable notice
-
-    private var unavailableNotice: some View {
-        Card {
-            HStack(alignment: .top, spacing: 10) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.danger)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Not available on this device")
-                        .font(.subheadline.weight(.semibold))
-                    Text("This iOS build's containermanager refuses bad_query access to the eligibility container (containermanager sandbox), so eligibility can't be written here. Use the Apple Intelligence tweak + Device Spoof in Tweaks instead — on iOS 27 this needs the system to extend the systemgroup.com.apple.eligibility path.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-            }
-        }
-    }
-
-    // MARK: Options
-
-    private var optionsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            SectionTitle(title: "Domains")
-            Card {
-                Toggle(isOn: $manager.enableGreyMatter) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Apple Intelligence")
-                            .font(.subheadline.weight(.semibold))
-                        Text("GREYMATTER domain — generative model eligibility.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .tint(Theme.accent)
-
-                Divider()
-
-                Toggle(isOn: $manager.enableCalcium) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("China Cellular")
-                            .font(.subheadline.weight(.semibold))
-                        Text("CALCIUM domain — unsets the China-cellular restriction.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .tint(Theme.accent)
-            }
-            Text("Domains are merged into the existing eligibility.plist — nothing else is touched. Disabling a toggle removes just that domain. The original file is backed up on first apply.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
-        }
-    }
-
-    // MARK: Actions
-
-    @ViewBuilder
-    private var actionSection: some View {
-        if isSupported {
-            Card {
-                ActionButton(
-                    title: "Apply",
-                    systemImage: "checkmark",
-                    isBusy: isBusy,
-                    action: apply
-                )
-
-                TonalButton(
-                    title: "Reset",
-                    systemImage: "arrow.clockwise",
-                    tint: Theme.danger,
-                    action: reset
-                )
+    private var applyBar: some View {
+        HStack(spacing: 12) {
+            Button("Restore", role: .destructive, action: reset)
+                .glassAction()
                 .disabled(isBusy)
+            Button("Update eligibility", systemImage: "checkmark") { apply() }
+                .font(.body.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .glassAction(prominent: true)
+                .tint(Theme.accent)
+                .disabled(isBusy)
+        }
+        .padding(.horizontal, Theme.pagePadding)
+        .padding(.vertical, 12)
+    }
+
+    private func domain(title: String, detail: String, symbol: String, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: symbol)
+                    .foregroundStyle(Theme.accent)
+                    .frame(width: 24)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title).font(.body.weight(.medium))
+                    Text(detail).font(.caption).foregroundStyle(.secondary)
+                }
             }
         }
+        .tint(Theme.accent)
+        .padding(.vertical, 16)
     }
-
-    // MARK: Footnotes
-
-    private var footnotes: some View {
-        VStack(spacing: 6) {
-            Text("For the full Apple Intelligence workflow, also enable the Apple Intelligence tweak and spoof to an AI-capable model in Tweaks.")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-            Text("Reset restores the eligibility.plist captured on your first apply.")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-        }
-        .multilineTextAlignment(.center)
-        .padding(.horizontal, 8)
-    }
-
-    // MARK: Actions
 
     private func apply() {
-        guard isSupported, !isBusy else { return }
+        guard reachable, !isBusy else { return }
         isBusy = true
-
         DispatchQueue.global(qos: .userInitiated).async {
             do {
                 try manager.apply()
                 DispatchQueue.main.async {
                     isBusy = false
                     UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    RespringHelper.respring()
+                    RespringHelper.shared.trigger()
                 }
             } catch {
                 DispatchQueue.main.async {
@@ -192,9 +153,8 @@ struct EligibilityView: View {
     }
 
     private func reset() {
-        guard isSupported, !isBusy else { return }
+        guard reachable, !isBusy else { return }
         isBusy = true
-
         DispatchQueue.global(qos: .userInitiated).async {
             do {
                 try manager.reset()

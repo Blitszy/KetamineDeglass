@@ -2,32 +2,40 @@ import SwiftUI
 
 struct RootView: View {
     @EnvironmentObject private var store: GestaltStore
+    @ObservedObject private var respring = RespringHelper.shared
+    @AppStorage("hasAcceptedDisclaimer") private var hasAcceptedDisclaimer = false
 
     var body: some View {
-        switch DeviceCompatibility.currentStatus {
-        case .supported:
-            MainTabView()
-        case .unsupported(let reason):
-            UnsupportedView(reason: reason)
+        Group {
+            switch DeviceCompatibility.currentStatus {
+            case .supported:
+                MainTabView()
+            case .unsupported(let reason):
+                UnsupportedView(reason: reason)
+            }
+        }
+        .overlay {
+            if respring.isRespringing {
+                NeoSpringView()
+            }
+        }
+        .fullScreenCover(isPresented: .constant(!hasAcceptedDisclaimer)) {
+            DisclaimerView { hasAcceptedDisclaimer = true }
         }
     }
 }
-
-// MARK: - Main tabs
 
 struct MainTabView: View {
     var body: some View {
         TabView {
             HomeView()
-                .tabItem { Label("Tweaks", systemImage: "slider.horizontal.3") }
+                .tabItem { Label("Tweaks", systemImage: "switch.2") }
             PosterBoardView()
-                .tabItem { Label("PosterBoard", systemImage: "photo.on.rectangle.angled") }
-            EligibilityView()
-                .tabItem { Label("Eligibility", systemImage: "checklist") }
-            SettingsView()
-                .tabItem { Label("Settings", systemImage: "gearshape.fill") }
+                .tabItem { Label("PosterBoard", systemImage: "square.stack.3d.up") }
+            SiriAISetupView()
+                .tabItem { Label("Siri AI Setup", systemImage: "brain.head.profile") }
+            SystemHubView()
+                .tabItem { Label("Settings", systemImage: "gearshape") }
         }
-        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
-        .toolbarBackground(.visible, for: .tabBar)
     }
 }

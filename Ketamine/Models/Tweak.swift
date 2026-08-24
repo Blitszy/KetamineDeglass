@@ -1,4 +1,24 @@
 import Foundation
+import UIKit
+
+// MARK: - Platform gating
+
+/// Restricts a tweak to a specific device idiom. Tweaks that don't match
+/// the running device's `UIUserInterfaceIdiom` are hidden from the catalog
+/// entirely (see `GestaltStore`).
+enum TweakPlatform: Equatable {
+    case all
+    case iOSOnly
+    case iPadOSOnly
+
+    func matches(_ idiom: UIUserInterfaceIdiom) -> Bool {
+        switch self {
+        case .all: return true
+        case .iOSOnly: return idiom == .phone
+        case .iPadOSOnly: return idiom == .pad
+        }
+    }
+}
 
 // MARK: - Categories
 
@@ -46,7 +66,6 @@ struct GestaltModification: Equatable {
     /// value is swapped for the selected option.
     var isPicker: Bool = false
     /// When set, `value` is written into the `CacheData` blob at the offset
-    /// resolved for this key (mond-style) instead of CacheExtra.
     var cacheDataKey: String? = nil
     /// Value written into CacheData when the owning tweak is disabled.
     var cacheDataDisabledValue: Int? = nil
@@ -86,6 +105,10 @@ struct Tweak: Identifiable, Equatable {
 
     /// Special flag for iPadOS: requires the CacheData binary patch.
     var requiresCacheDataPatch: Bool = false
+
+    /// Restricts which device idiom this tweak is offered on. Defaults to
+    /// `.all` (both iPhone and iPad).
+    var platform: TweakPlatform = .all
 
     let modifications: [GestaltModification]
 }

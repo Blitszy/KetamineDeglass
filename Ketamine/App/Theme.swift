@@ -1,41 +1,98 @@
 import SwiftUI
 
-// MARK: - Palette
+enum AppAccent: String, CaseIterable, Identifiable {
+    case blue
+    case indigo
+    case teal
+    case orange
+    case pink
 
-enum Theme {
-    /// The single accent color used across the app.
-    static let accent = Color(.systemBlue)
+    var id: String { rawValue }
 
-    /// Reserved for destructive actions only.
-    static let danger = Color(.systemRed)
+    var name: String {
+        switch self {
+        case .blue: return "Blue"
+        case .indigo: return "Indigo"
+        case .teal: return "Teal"
+        case .orange: return "Orange"
+        case .pink: return "Pink"
+        }
+    }
 
-    /// Rounded surface used for cards and grouped rows.
-    static let surface = Color(.secondarySystemGroupedBackground)
+    var color: Color {
+        switch self {
+        case .blue: return .blue
+        case .indigo: return .indigo
+        case .teal: return .teal
+        case .orange: return .orange
+        case .pink: return .pink
+        }
+    }
 
-    /// Hairline separator between grouped rows.
-    static let separator = Color(.separator)
-}
-
-// MARK: - Background
-
-/// Simple monochrome grouped background.
-struct GlassBackground: View {
-    var body: some View {
-        Color(.systemGroupedBackground)
-            .ignoresSafeArea()
+    static var current: AppAccent {
+        AppAccent(rawValue: UserDefaults.standard.string(forKey: "accentColor") ?? "blue") ?? .blue
     }
 }
 
-// MARK: - Category badge
+enum Theme {
+    static var accent: Color {
+        if UserDefaults.standard.bool(forKey: "useCustomColor") {
+            let hue = UserDefaults.standard.double(forKey: "customColor")
+            return Color(hue: hue, saturation: 0.75, brightness: 0.9)
+        }
+        return AppAccent.current.color
+    }
+    static let caution = Color(.systemOrange)
+    static let destructive = Color(.systemRed)
+    static let affirmative = Color(.systemGreen)
 
-struct CategoryBadge: View {
-    let symbol: String
+    static let pagePadding: CGFloat = 20
+    static let cardRadius: CGFloat = 24
+}
+
+extension View {
+    @ViewBuilder
+    func liquidGlass(cornerRadius: CGFloat = Theme.cardRadius) -> some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        if #available(iOS 26.0, *) {
+            glassEffect(Glass.regular, in: shape)
+        } else {
+            background(.thinMaterial, in: shape)
+        }
+    }
+
+    @ViewBuilder
+    func glassAction(prominent: Bool = false) -> some View {
+        if #available(iOS 26.0, *) {
+            if prominent {
+                buttonStyle(.glassProminent)
+            } else {
+                buttonStyle(.glass)
+            }
+        } else if prominent {
+            buttonStyle(.borderedProminent)
+        } else {
+            buttonStyle(.bordered)
+        }
+    }
+}
+
+struct GlassGroup<Content: View>: View {
+    let spacing: CGFloat
+    let content: Content
+
+    init(spacing: CGFloat = 16, @ViewBuilder content: () -> Content) {
+        self.spacing = spacing
+        self.content = content()
+    }
 
     var body: some View {
-        Image(systemName: symbol)
-            .font(.system(size: 14, weight: .medium))
-            .foregroundStyle(.secondary)
-            .frame(width: 30, height: 30)
-            .background(Circle().fill(Color(.tertiarySystemFill)))
+        if #available(iOS 26.0, *) {
+            GlassEffectContainer(spacing: spacing) {
+                content
+            }
+        } else {
+            content
+        }
     }
 }

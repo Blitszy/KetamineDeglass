@@ -79,9 +79,9 @@ enum DeviceCompatibility {
                          build: String?) -> Status {
         let major = version.majorVersion
 
-        if major < 18 {
+        if major < 26 {
             return .unsupported(reason:
-                "This app requires iOS 18.0 or newer. You are running iOS \(major).")
+                "This app requires iOS 26.0 or newer. You are running iOS \(major).")
         }
 
         if major > 27 {
@@ -96,7 +96,7 @@ enum DeviceCompatibility {
             }
             if parsed > newestSupportedBuild {
                 return .unsupported(reason:
-                    "Your build \(raw) is newer than 27.0 beta 4 (24A5390f) and is patched.")
+                    "Your build \(raw) is newer than 27.0 developer beta 4 (24A5390f) and is patched.")
             }
         }
 
@@ -109,4 +109,22 @@ enum DeviceCompatibility {
     }
 
     static var currentInfo: OSInfo { currentOS() }
+
+    // MARK: - Feature gating
+
+    /// Tweaks and Siri AI Setup need iOS 27 for full support. iOS 26.x is
+    /// limited to PosterBoard, which works standalone on both versions.
+    static func fullFeatureStatus(feature: String) -> Status {
+        let version = currentOS().version
+        if version.majorVersion < 27 {
+            return .unsupported(reason:
+                "\(feature) requires iOS 27. You are running iOS \(version.majorVersion).\(version.minorVersion), which currently supports PosterBoard only.")
+        }
+        return .supported
+    }
+
+    static var supportsFullFeatureSet: Bool {
+        if case .supported = fullFeatureStatus(feature: "This feature") { return true }
+        return false
+    }
 }
