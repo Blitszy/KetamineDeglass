@@ -30,8 +30,8 @@ struct MainTabView: View {
         TabView {
             HomeView()
                 .tabItem { Label("Tweaks", systemImage: "switch.2") }
-            PosterBoardView()
-                .tabItem { Label("PosterBoard", systemImage: "square.stack.3d.up") }
+            CustomizationView()
+                .tabItem { Label("Customization", systemImage: "paintbrush.pointed") }
             SiriAISetupView()
                 .tabItem { Label("Siri AI Setup", systemImage: "brain.head.profile") }
             SystemHubView()

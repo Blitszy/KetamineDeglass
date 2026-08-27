@@ -5,11 +5,13 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
     @EnvironmentObject private var store: GestaltStore
     @AppStorage("pbHash") private var pbHash = ""
+    @AppStorage("phoneHash") private var phoneHash = ""
     @AppStorage("accentColor") private var accentColor = AppAccent.blue.rawValue
     @AppStorage("appIcon") private var appIcon = AppIconCatalog.standard.id
     @AppStorage("customColor") private var customColor: Double = 0
     @AppStorage("useCustomColor") private var useCustomColor = false
     @State private var detectingHash = false
+    @State private var detectingPhoneHash = false
     @State private var showHashError = false
     @State private var hashErrorMessage = ""
     @State private var showBackupImporter = false
@@ -24,6 +26,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 28) {
                 appearance
                 connection
+                phoneConnection
                 backup
             }
             .padding(Theme.pagePadding)
@@ -173,6 +176,33 @@ struct SettingsView: View {
         }
     }
 
+    private var phoneConnection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader("Phone app container")
+            VStack(alignment: .leading, spacing: 14) {
+                TextField("Container UUID", text: $phoneHash)
+                    .font(.system(.body, design: .monospaced))
+                    .textFieldStyle(.roundedBorder)
+                HStack {
+                    Button("Detect on device", systemImage: "scope", action: detectPhoneHash)
+                        .disabled(detectingPhoneHash)
+                    Spacer()
+                    if detectingPhoneHash { ProgressView() }
+                    if !phoneHash.isEmpty {
+                        Button("Clear", role: .destructive) { phoneHash = "" }
+                    }
+                }
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Theme.accent)
+                if !BadQuery.isAvailable {
+                    Text("Detection is unavailable on this iOS version.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
     private var backup: some View {
         VStack(alignment: .leading, spacing: 14) {
             SectionHeader("Backup")
@@ -222,6 +252,28 @@ struct SettingsView: View {
             } catch {
                 DispatchQueue.main.async {
                     detectingHash = false
+                    UINotificationFeedbackGenerator().notificationOccurred(.error)
+                    hashErrorMessage = error.localizedDescription
+                    showHashError = true
+                }
+            }
+        }
+    }
+
+    private func detectPhoneHash() {
+        guard !detectingPhoneHash else { return }
+        detectingPhoneHash = true
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let hash = try BadQuery.findMobilePhoneHash().trimmingCharacters(in: .whitespacesAndNewlines)
+                DispatchQueue.main.async {
+                    phoneHash = hash
+                    detectingPhoneHash = false
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    detectingPhoneHash = false
                     UINotificationFeedbackGenerator().notificationOccurred(.error)
                     hashErrorMessage = error.localizedDescription
                     showHashError = true

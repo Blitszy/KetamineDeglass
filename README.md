@@ -4,11 +4,7 @@
 
 **Ketamine** is an on-device MobileGestalt editor that lets you modify supported system values directly from your iPhone — no PC required.
 
-> ⚠️ **Experimental:** Many features in Ketamine 1.2 are still untested across all devices and iOS versions. Things may not work as expected. Please report bugs, issues, and compatibility results in our [Discord](https://discord.gg/Wt8dj8E8ZN).
-
-## What's new in 1.2
-
-The app has been rebuilt from scratch, and the old **Eligibility** tab is now a full **Siri AI Setup** flow. See the [changelog](changelog.md) for everything.
+> ⚠️ **Experimental:** Many features in Ketamine are still untested across all devices and iOS versions. Things may not work as expected. Please report bugs, issues, and compatibility results in our [Discord](https://discord.gg/Wt8dj8E8ZN).
 
 ## Features
 
@@ -27,7 +23,7 @@ The app has been rebuilt from scratch, and the old **Eligibility** tab is now a 
 
 ## Compatibility
 
-| iOS Version | MobileGestalt Editing | PosterBoard |
+| iOS Version | MobileGestalt Editing | Customization |
 | ----------- | --------------------- | ----------- |
 | iOS 18.x and earlier | ❌ Unsupported | ❌ Unsupported |
 | iOS 26.0 – 26.6 | ❌ Unsupported | ✅ Supported |

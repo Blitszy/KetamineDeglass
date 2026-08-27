@@ -38,27 +38,14 @@ struct PosterBoardView: View {
 
     var body: some View {
         ZStack {
-            NavigationStack {
-                Group {
-                    if BadQuery.isAvailable {
-                        library
-                    } else {
-                        locked
-                    }
-                }
-                .background(Color(uiColor: .systemGroupedBackground))
-                .navigationTitle("Library")
-                .navigationBarTitleDisplayMode(.large)
-                .toolbar {
-                    if BadQuery.isAvailable {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button { showTendiesImporter = true } label: {
-                                Image(systemName: "plus")
-                            }
-                        }
-                    }
+            Group {
+                if BadQuery.isAvailable {
+                    library
+                } else {
+                    locked
                 }
             }
+            .background(Color(uiColor: .systemGroupedBackground))
             if isBusy { ProgressOverlay(message: "Installing collection") }
         }
         .fileImporter(isPresented: $showTendiesImporter, allowedContentTypes: [tendieType], allowsMultipleSelection: true, onCompletion: importTendies)

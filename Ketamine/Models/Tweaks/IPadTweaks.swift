@@ -13,7 +13,6 @@ enum IPadTweaks {
             isRisky: true,
             notes: "Highly experimental. Do not enable if you use an alphanumeric passcode. Always backed up.",
             requiresCacheDataPatch: true,
-            platform: .iOSOnly,
             modifications: [
                 GestaltModification(key: "mG0AnH/Vy1veoqoLRAIgTA",
                                     subkey: nil, value: .int(1)),
@@ -58,7 +57,6 @@ enum IPadTweaks {
             symbol: "apps.iphone",
             isRisky: false,
             notes: nil,
-            platform: .iOSOnly,
             modifications: [
                 GestaltModification(key: "9MZ5AdH43csAUajl/dU+IQ",
                                     subkey: nil, value: .intArray([1, 2]))
