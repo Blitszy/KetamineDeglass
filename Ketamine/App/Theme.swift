@@ -1,4 +1,4 @@
-```swift
+swift
 import SwiftUI
 
 enum AppAccent: String, CaseIterable, Identifiable {
@@ -80,4 +80,3 @@ struct GlassGroup<Content: View>: View {
         content
     }
 }
-```
