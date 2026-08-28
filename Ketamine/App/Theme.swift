@@ -1,3 +1,4 @@
+```swift
 import SwiftUI
 
 enum AppAccent: String, CaseIterable, Identifiable {
@@ -42,6 +43,7 @@ enum Theme {
         }
         return AppAccent.current.color
     }
+
     static let caution = Color(.systemOrange)
     static let destructive = Color(.systemRed)
     static let affirmative = Color(.systemGreen)
@@ -53,23 +55,12 @@ enum Theme {
 extension View {
     @ViewBuilder
     func liquidGlass(cornerRadius: CGFloat = Theme.cardRadius) -> some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-        if #available(iOS 26.0, *) {
-            glassEffect(Glass.regular, in: shape)
-        } else {
-            background(.thinMaterial, in: shape)
-        }
+        background(.thinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
     }
 
     @ViewBuilder
     func glassAction(prominent: Bool = false) -> some View {
-        if #available(iOS 26.0, *) {
-            if prominent {
-                buttonStyle(.glassProminent)
-            } else {
-                buttonStyle(.glass)
-            }
-        } else if prominent {
+        if prominent {
             buttonStyle(.borderedProminent)
         } else {
             buttonStyle(.bordered)
@@ -87,12 +78,7 @@ struct GlassGroup<Content: View>: View {
     }
 
     var body: some View {
-        if #available(iOS 26.0, *) {
-            GlassEffectContainer(spacing: spacing) {
-                content
-            }
-        } else {
-            content
-        }
+        content
     }
 }
+```
