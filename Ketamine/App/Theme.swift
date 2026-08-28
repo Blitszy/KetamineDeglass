@@ -55,16 +55,15 @@ enum Theme {
 extension View {
     @ViewBuilder
     func liquidGlass(cornerRadius: CGFloat = Theme.cardRadius) -> some View {
-        background(.thinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-    }
+    background(.thinMaterial, in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+}
 
     @ViewBuilder
     func glassAction(prominent: Bool = false) -> some View {
-        if prominent {
-            buttonStyle(.borderedProminent)
-        } else {
-            buttonStyle(.bordered)
-        }
+    if prominent {
+        buttonStyle(.borderedProminent)
+    } else {
+        buttonStyle(.bordered)
     }
 }
 
