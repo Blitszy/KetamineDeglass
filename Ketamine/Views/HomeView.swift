@@ -47,11 +47,8 @@ struct HomeView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 if DeviceCompatibility.supportsFullFeatureSet {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        NavigationLink { ApplyChangesView() } label: {
-                            Image(systemName: "bolt.horizontal.circle")
+                   ToolbarItem(placement: .topBarTrailing) { NavigationLink { ApplyChangesView() } label: { Image(systemName: "bolt.horizontal.circle") } .buttonStyle(.bordered) .disabled(store.enabledCount == 0)
                         }
-                        .disabled(store.enabledCount == 0)
                     }
                 }
             }
