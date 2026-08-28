@@ -38,10 +38,10 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             build
 
-            - name: Package IPA
-              run: |
+      - name: Package IPA
+        run: |
           mkdir Payload
-          cp -R ~/Library/Developer/Xcode/DerivedData/Ketamine-*/Build/Products/Release-iphoneos/Ketamine.app Payload/
+          cp -R "$(xcodebuild -project Ketamine.xcodeproj -scheme Ketamine -configuration Release -sdk iphoneos -showBuildSettings | grep TARGET_BUILD_DIR | head -1 | cut -d '=' -f2 | xargs)/Ketamine.app" Payload/
           zip -r Ketamine.ipa Payload
 
       - name: Upload IPA
