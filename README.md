@@ -3,6 +3,7 @@
 ### On-Device MobileGestalt Editor for iOS
 
 **Ketamine** is an on-device MobileGestalt editor that lets you modify supported system values directly from your iPhone — no PC required.
+Note: This is not the original Ketamine, this is a fork disabling liquid glass
 
 > ⚠️ **Experimental:** Many features in Ketamine are still untested across all devices and iOS versions. Things may not work as expected. Please report bugs, issues, and compatibility results in our [Discord](https://discord.gg/Wt8dj8E8ZN).
 
