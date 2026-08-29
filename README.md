@@ -1,4 +1,4 @@
-# KetamineGlass
+# KetamineDeglass
 
 ### On-Device MobileGestalt Editor for iOS
 
