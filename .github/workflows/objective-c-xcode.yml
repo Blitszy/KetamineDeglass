@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     name: Build Ketamine
-    runs-on: macos-26
+    runs-on: macos-18
 
     steps:
       - name: Checkout
