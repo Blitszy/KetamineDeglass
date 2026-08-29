@@ -24,36 +24,40 @@ struct HomeView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if DeviceCompatibility.supportsFullFeatureSet {
-                    ScrollView {
-                        LazyVStack(alignment: .leading, spacing: 24) {
-                            commandStatus
-                            categoryRail
-                            catalog
-                            if !selectedTweaks.isEmpty { activeConfiguration }
-                        }
-                        .padding(.horizontal, Theme.pagePadding)
-                        .padding(.bottom, 32)
+    NavigationStack {
+        Group {
+            if DeviceCompatibility.supportsFullFeatureSet {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 24) {
+                        commandStatus
+                        categoryRail
+                        catalog
+                        if !selectedTweaks.isEmpty { activeConfiguration }
                     }
-                    .scrollIndicators(.hidden)
-                } else {
-                    FeatureUnsupportedView(feature: "Tweaks")
+                    .padding(.horizontal, Theme.pagePadding)
+                    .padding(.bottom, 32)
                 }
+                .scrollIndicators(.hidden)
+            } else {
+                FeatureUnsupportedView(feature: "Tweaks")
             }
-            .background(Color(uiColor: .systemGroupedBackground))
-            .navigationTitle("Tweaks")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                if DeviceCompatibility.supportsFullFeatureSet {
-                   ToolbarItem(placement: .topBarTrailing) { NavigationLink { ApplyChangesView() } label: { Image(systemName: "bolt.horizontal.circle") } .buttonStyle(.bordered) .disabled(store.enabledCount == 0)
-                        }
+        }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("Tweaks")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            if DeviceCompatibility.supportsFullFeatureSet {
+                ToolbarItem(placement: .topBarTrailing) {
+                    NavigationLink { ApplyChangesView() } label: {
+                        Image(systemName: "bolt.horizontal.circle")
                     }
+                    .buttonStyle(.bordered)
+                    .disabled(store.enabledCount == 0)
                 }
             }
         }
     }
+}
 
     private var commandStatus: some View {
         HStack(alignment: .center, spacing: 16) {
