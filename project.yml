@@ -1,4 +1,4 @@
-name: Ketamine
+name: KetamineDeglass
 options:
   minimumXcodeGenVersion: 2.35.0
   deploymentTarget:
