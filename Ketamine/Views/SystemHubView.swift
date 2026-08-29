@@ -50,7 +50,7 @@ struct SystemHubView: View {
             .navigationBarTitleDisplayMode(.large)
         }
         .sheet(isPresented: $showRestore) { RestoreSheet() }
-        .toast(isPresented: $showGoldToast, message: "You've struck a gold!")
+        .toast(isPresented: $showGoldToast, message: "You've struck gold!")
     }
 
     private var header: some View {
@@ -61,7 +61,7 @@ struct SystemHubView: View {
                 .frame(width: 48, height: 48)
                 .clipShape(RoundedRectangle(cornerRadius: 13, style: .continuous))
             VStack(alignment: .leading, spacing: 3) {
-                Text("Ketamine").font(.title3.weight(.semibold))
+                Text("KetamineDeglass").font(.title3.weight(.semibold))
                 Text("MG Toolkit  v\(version)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -94,6 +94,7 @@ struct SystemHubView: View {
             credit("0xjohnnydev", "MobileHouseArrest PoC", "https://github.com/0xjohnnydev")
             credit("forcequitOS", "bad_query", "https://github.com/forcequitOS")
             credit("leminlimez", "Pocket Poster", "https://github.com/leminlimez")
+            credit("capybar.a", "Deglassification", "https://github.com/Blitszy")
             credit("rooootdev", "NeoSpring", "https://github.com/rooootdev", easterEgg: {
                 RespringHelper.shared.trigger()
             })
